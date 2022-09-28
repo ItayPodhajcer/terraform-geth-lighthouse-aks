@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "lighthouse.fullname" . }}
+  labels:
+    {{- include "lighthouse.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "lighthouse.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "lighthouse.fullname" . }}
+  template:
+    metadata:
+      labels:
+        {{- include "lighthouse.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "lighthouse.serviceAccountName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http-api
+              containerPort: {{ .Values.lighthouse.httpPort }}
+              protocol: TCP
+            - name: p2p-tcp
+              containerPort: {{ .Values.lighthouse.p2pPort }}
+              protocol: TCP
+            - name: p2p-udp
+              containerPort: {{ .Values.lighthouse.p2pPort }}
+              protocol: UDP
+          command:
+            - sh
+            - -ac
+            - >
+              exec lighthouse
+              beacon_node
+              --disable-upnp
+              --disable-enr-auto-update
+              --enr-address={{ .Values.externalResources.loadBalancerIP }}
+              --enr-tcp-port={{ .Values.lighthouse.p2pPort }}
+              --enr-udp-port={{ .Values.lighthouse.p2pPort }}
+              --listen-address=0.0.0.0
+              --port={{ .Values.lighthouse.p2pPort }}
+              --discovery-port={{ .Values.lighthouse.p2pPort }}
+              --http
+              --http-address=0.0.0.0
+              --http-port={{ .Values.lighthouse.httpPort }}
+              --execution-endpoint=http://{{ .Values.lighthouse.gethServiceName }}-headless.{{ .Release.Namespace }}.svc.cluster.local:8551
+              --execution-jwt="/data/{{ .Values.lighthouse.jwtSecretFilename }}"
+          livenessProbe:
+            tcpSocket:
+              port: http-api
+            initialDelaySeconds: 60
+            periodSeconds: 120
+          readinessProbe:
+            tcpSocket:
+              port: http-api
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: {{ .Chart.Name }}-data
+              mountPath: /root
+            - name: jwt
+              mountPath: "/data/{{ .Values.lighthouse.jwtSecretFilename }}"
+              subPath: {{ .Values.lighthouse.jwtSecretFilename }}
+              readOnly: true
+      volumes:
+        - name: {{ .Chart.Name }}-data
+          persistentVolumeClaim:
+            claimName: {{ include "lighthouse.fullname" . }}-disk
+        - name: jwt
+          secret:
+            secretName: {{ .Values.lighthouse.jwtSecretName }}
+      

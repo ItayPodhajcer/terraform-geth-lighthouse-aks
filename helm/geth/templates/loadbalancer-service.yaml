@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-resource-group: {{ .Values.externalResources.resourceGroupName }}
+    service.beta.kubernetes.io/azure-load-balancer-mixed-protocols: "true"
+    service.beta.kubernetes.io/azure-dns-label-name: {{ include "geth.fullname" . }}
+  name: {{ include "geth.fullname" . }}-loadbalancer
+  labels:
+    {{- include "geth.labels" . | nindent 4 }}
+spec:
+  loadBalancerIP: {{ .Values.externalResources.loadBalancerIP }}
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  ports:
+    - name: http-rpc
+      port: {{ .Values.geth.httpRpcPort }}
+      targetPort: http-rpc
+      protocol: TCP
+    - name: ws-rpc
+      port: {{ .Values.geth.wsRpcPort }}
+      targetPort: ws-rpc
+      protocol: TCP
+    - name: p2p-tcp
+      port: {{ .Values.geth.p2pPort }}
+      targetPort: p2p-tcp
+      protocol: TCP
+    - name: p2p-udp
+      port: {{ .Values.geth.p2pPort }}
+      targetPort: p2p-udp
+      protocol: UDP
+  selector:
+    {{- include "geth.selectorPodLabels" . | nindent 4 }}

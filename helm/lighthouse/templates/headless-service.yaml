@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lighthouse.fullname" . }}
+  labels:
+    {{- include "lighthouse.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - name: http-api
+      port: {{ .Values.lighthouse.httpPort }}
+      targetPort: http-api
+      protocol: TCP
+    - name: p2p-tcp
+      port: {{ .Values.lighthouse.p2pPort }}
+      targetPort: p2p-tcp
+      protocol: TCP
+    - name: p2p-udp
+      port: {{ .Values.lighthouse.p2pPort }}
+      targetPort: p2p-udp
+      protocol: UDP
+  selector:
+    {{- include "lighthouse.selectorLabels" . | nindent 4 }}

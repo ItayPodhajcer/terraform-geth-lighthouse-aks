@@ -1,0 +1,32 @@
+replicaCount: 1
+
+lighthouse:
+  gethServiceName: geth
+  jwtSecretName: jwt-secret
+  jwtSecretFilename: jwt.hex
+  httpPort: 5052
+  p2pPort: 9000
+  
+image:
+  repository: sigp/lighthouse
+  pullPolicy: IfNotPresent
+  tag: ""
+
+externalResources:
+  resourceGroupName: ""
+  loadBalancerIP: 0.0.0.0
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+resources: {}
+  # limits:
+  #   cpu: 4000m
+  #   memory: 16Gi
+  # requests:
+  #   cpu: 2000m
+  #   memory: 8Gi

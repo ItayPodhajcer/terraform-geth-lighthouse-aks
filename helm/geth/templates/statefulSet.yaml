@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "geth.fullname" . }}
+  labels:
+    {{- include "geth.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "geth.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "geth.fullname" . }}
+  template:
+    metadata:
+      labels:
+        {{- include "geth.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "geth.serviceAccountName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http-rpc
+              containerPort: {{ .Values.geth.httpRpcPort }}
+              protocol: TCP
+            - name: ws-rpc
+              containerPort: {{ .Values.geth.wsRpcPort }}
+              protocol: TCP
+            - name: auth-rpc
+              containerPort: {{ .Values.geth.authRpcPort }}
+              protocol: TCP
+            - name: p2p-tcp
+              containerPort: {{ .Values.geth.p2pPort }}
+              protocol: TCP
+            - name: p2p-udp
+              containerPort: {{ .Values.geth.p2pPort }}
+              protocol: UDP
+          command:
+            - sh
+            - -ac
+            - >
+              exec geth 
+              --syncmode=snap
+              --nat=extip:{{ .Values.externalResources.loadBalancerIP }}
+              --http
+              --http.api=txpool,eth,net,web3,personal
+              --http.addr=0.0.0.0
+              --http.port={{ .Values.geth.httpRpcPort }}
+              --http.corsdomain=*
+              --http.vhosts=*
+              --ws
+              --ws.api=txpool,eth,net,web3,personal
+              --ws.addr=0.0.0.0
+              --ws.port={{ .Values.geth.wsRpcPort }}
+              --ws.origins=*
+              --authrpc.addr=0.0.0.0
+              --authrpc.port={{ .Values.geth.authRpcPort }}
+              --authrpc.jwtsecret="/data/{{ .Values.geth.jwtSecretFilename }}"
+              --authrpc.vhosts=*
+          livenessProbe:
+            tcpSocket:
+              port: http-rpc
+            initialDelaySeconds: 60
+            periodSeconds: 120
+          readinessProbe:
+            tcpSocket:
+              port: http-rpc
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: {{ .Chart.Name }}-data
+              mountPath: /root
+            - name: jwt
+              mountPath: "/data/{{ .Values.geth.jwtSecretFilename }}"
+              subPath: {{ .Values.geth.jwtSecretFilename }}
+              readOnly: true
+      volumes:
+        - name: {{ .Chart.Name }}-data
+          persistentVolumeClaim:
+            claimName: {{ include "geth.fullname" . }}-disk
+        - name: jwt
+          secret:
+            secretName: {{ .Values.geth.jwtSecretName }}

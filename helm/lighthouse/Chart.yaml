@@ -1,0 +1,6 @@
+apiVersion: v2
+name: lighthouse
+description: A Lighthouse Helm chart for Kubernetes
+type: application
+version: 1.0.0
+appVersion: "v3.1.0"
