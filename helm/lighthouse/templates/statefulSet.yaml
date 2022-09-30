@@ -49,6 +49,7 @@ spec:
               --http-port={{ .Values.lighthouse.httpPort }}
               --execution-endpoint=http://{{ .Values.lighthouse.gethServiceName }}-headless.{{ .Release.Namespace }}.svc.cluster.local:8551
               --execution-jwt="/data/{{ .Values.lighthouse.jwtSecretFilename }}"
+              --checkpoint-sync-url={{ .Values.lighthouse.checkpointSyncEndpoint }}
           livenessProbe:
             tcpSocket:
               port: http-api

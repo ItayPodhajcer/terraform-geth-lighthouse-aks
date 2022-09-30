@@ -6,6 +6,7 @@ lighthouse:
   jwtSecretFilename: jwt.hex
   httpPort: 5052
   p2pPort: 9000
+  checkpointSyncEndpoint: https://mainnet.checkpoint.sigp.io
   
 image:
   repository: sigp/lighthouse
