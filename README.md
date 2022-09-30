@@ -1,1 +1,2 @@
-# terraform-geth-lighthouse-aks
+# Running Ethereum’s Execution & Consensus Nodes on Azure Kubernetes Service
+This repository contains the scripts disscused in the article [Running Ethereum’s Execution & Consensus Nodes on Azure Kubernetes Service](https://medium.com/microsoftazure/running-ethereums-execution-consensus-nodes-on-azure-kubernetes-service-f433ab3f0737).
