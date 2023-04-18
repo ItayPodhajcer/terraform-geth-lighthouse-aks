@@ -58,6 +58,7 @@ spec:
               --authrpc.port={{ .Values.geth.authRpcPort }}
               --authrpc.jwtsecret="/data/{{ .Values.geth.jwtSecretFilename }}"
               --authrpc.vhosts=*
+              --db.engine=pebble
           livenessProbe:
             tcpSocket:
               port: http-rpc

@@ -69,6 +69,7 @@ module "service_geth" {
     "geth.jwtSecretName"                  = local.jwt_secret_name
     "geth.jwtSecretFilename"              = local.jwt_secret_filename
     "externalResources.resourceGroupName" = azurerm_resource_group.this.name
+    "image.tag"                           = "v1.11.5"
   }
 }
 
@@ -85,5 +86,6 @@ module "service_lighthouse" {
     "lighthouse.jwtSecretName"            = local.jwt_secret_name
     "lighthouse.jwtSecretFilename"        = local.jwt_secret_filename
     "externalResources.resourceGroupName" = azurerm_resource_group.this.name
+    "image.tag"                           = "v4.0.2-rc.0"
   }
 }
